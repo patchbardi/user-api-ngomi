@@ -1,23 +1,26 @@
-
 import express from 'express';
-import db from './db.js'; // Assurez-vous d'ajouter l'extension .js
+import getDatabaseConnection from './db.js';
+import 'dotenv/config'; // Assurez-vous que cela est ici pour charger les variables d'environnement
 const app = express();
-const port = 3000;
 
-app.get('/', (req, res) => {
-  res.json({"Hallo maman ": "am 2.11 hast du Geburstags"});
+
+app.get('/', async (req, res) => {
+    return res.status(200).json({"Hallo Liebe Maman": 'Morgen ist dein Geburstags, Alles gute Zum Geburstags Liebe Maman'});
 });
 
-// Nouvelle route pour récupérer les utilisateurs
-app.get('/users', (req, res) => {
-  db.query('SELECT * FROM users', (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+app.get('/users', async (req, res) => {
+    const conn = await getDatabaseConnection();
+    try {
+        const rows = await conn.query("SELECT * FROM users"); // Alle Benutzernamen abfragen
+        res.status(200).json(rows);
+    } catch (err) {
+        res.status(500).json({ message: 'Datenbankfehler', error: err });
+    } finally {
+        conn.release(); // Verbindung freigeben
     }
-    res.json(results);
-  });
 });
-const PORT = process.env.PORT || 3000; // Utilise le port défini dans l’environnement ou 3000 par défaut
+
+// Server starten
+const PORT = process.env.PORT || 3000; 
 app.listen(PORT, () => {
-  console.log(`Serveur en écoute sur http://localhost:${PORT}`);
 });
